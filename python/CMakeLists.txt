@@ -8,29 +8,28 @@ else ()
     set ( SWIG_FOUND TRUE )
   endif ()
 endif ()
-find_package ( PythonLibs REQUIRED )
-find_package ( PythonInterp REQUIRED )
+find_package ( Python3 COMPONENTS Interpreter Development )
 
 include ( UseSWIG )
 include_directories ( BEFORE ${CMAKE_SOURCE_DIR}/src )
-include_directories ( ${PYTHON_INCLUDE_DIRS} )
+include_directories ( ${Python3_INCLUDE_DIRS} )
 link_directories ( ${CMAKE_CURRENT_BINARY_DIR}/../src )
 
 if ( DOCUMENTATION )
   set(CMAKE_SWIG_FLAGS -DDOXYGEN=${DOXYGEN_FOUND})
 endif()
-swig_add_module ( ftdi1 python ftdi1.i )
+swig_add_library (ftdi1 LANGUAGE python SOURCES ftdi1.i )
 swig_link_libraries ( ftdi1 ftdi1 )
 
 if ( LINK_PYTHON_LIBRARY )
-  swig_link_libraries ( ftdi1 ${PYTHON_LIBRARIES} )
+  swig_link_libraries ( ftdi1 ${Python3_LIBRARIES} )
 elseif( APPLE )
   set_target_properties ( ${SWIG_MODULE_ftdi1_REAL_NAME} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup" )
 endif ()
 
 set_target_properties ( ${SWIG_MODULE_ftdi1_REAL_NAME} PROPERTIES NO_SONAME ON )
 
-execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print( sysconfig.get_python_lib( plat_specific=True, prefix='${CMAKE_INSTALL_PREFIX}' ) )"
+execute_process ( COMMAND ${Python3_EXECUTABLE} -c "from distutils import sysconfig; print( sysconfig.get_python_lib( plat_specific=True, prefix='${CMAKE_INSTALL_PREFIX}' ) )"
                   OUTPUT_VARIABLE _ABS_PYTHON_MODULE_PATH
                   OUTPUT_STRIP_TRAILING_WHITESPACE )
 
@@ -53,7 +52,7 @@ if ( DOCUMENTATION )
 
     # generate .i from doxygen .xml
     add_custom_command ( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ftdi1_doc.i
-        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/doxy2swig.py -n
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/doxy2swig.py -n
             ${CMAKE_BINARY_DIR}/doc/xml/ftdi_8c.xml
             ${CMAKE_CURRENT_BINARY_DIR}/ftdi1_doc.i
         DEPENDS ${CMAKE_BINARY_DIR}/doc/xml/ftdi_8c.xml
